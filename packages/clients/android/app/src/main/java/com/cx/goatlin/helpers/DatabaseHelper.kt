@@ -13,11 +13,11 @@ import com.cx.goatlin.models.Note
 import java.io.File
 import java.io.FileOutputStream
 
-class DatabaseHelper (val context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
+class DatabaseHelper(val context: Context) : SQLiteOpenHelper(context, DATABASE_NAME, null, DATABASE_VERSION) {
 
     private val preferences: SharedPreferences = context.getSharedPreferences(
-            "${context.packageName}.database_versions",
-            Context.MODE_PRIVATE
+        "${context.packageName}.database_versions",
+        Context.MODE_PRIVATE,
     )
 
     private fun installedDatabaseIsOutdated(): Boolean {
@@ -57,7 +57,7 @@ class DatabaseHelper (val context: Context) : SQLiteOpenHelper(context, DATABASE
         }
     }
 
-    public fun createAccount(username: String, password: String) : Boolean {
+    public fun createAccount(username: String, password: String): Boolean {
         val db: SQLiteDatabase = this.writableDatabase
         val record: ContentValues = ContentValues()
         var status = true
@@ -67,12 +67,10 @@ class DatabaseHelper (val context: Context) : SQLiteOpenHelper(context, DATABASE
 
         try {
             db.insertOrThrow(TABLE_ACCOUNTS, null, record)
-        }
-        catch (e: SQLException) {
+        } catch (e: SQLException) {
             Log.e("Database signup", e.toString())
             status = false
-        }
-        finally {
+        } finally {
             return status
         }
     }
@@ -84,8 +82,10 @@ class DatabaseHelper (val context: Context) : SQLiteOpenHelper(context, DATABASE
         val filterValues: Array<String> = arrayOf(username)
         val account: Account
 
-        val cursor: Cursor = db.query(false, TABLE_ACCOUNTS, columns, filter, filterValues,
-                "","","","")
+        val cursor: Cursor = db.query(
+            false, TABLE_ACCOUNTS, columns, filter, filterValues,
+            "", "", "", "",
+        )
 
         if (cursor.count != 1) {
             throw Exception("Account not found")
@@ -98,14 +98,22 @@ class DatabaseHelper (val context: Context) : SQLiteOpenHelper(context, DATABASE
         return account
     }
 
-    public fun listAccounts(): Cursor{
+    public fun listAccounts(): Cursor {
         val db: SQLiteDatabase = this.readableDatabase
-        val columns: Array<String> = arrayOf("id AS _id", "username","password")
-        return db.query(TABLE_ACCOUNTS, columns, null, null,
-                "","","","")
+        val columns: Array<String> = arrayOf("id AS _id", "username", "password")
+        return db.query(
+            TABLE_ACCOUNTS,
+            columns,
+            null,
+            null,
+            "",
+            "",
+            "",
+            "",
+        )
     }
 
-    public fun addNote (note: Note): Boolean {
+    public fun addNote(note: Note): Boolean {
         val db: SQLiteDatabase = this.writableDatabase
         val record: ContentValues = ContentValues()
         var status: Boolean = true
@@ -116,17 +124,15 @@ class DatabaseHelper (val context: Context) : SQLiteOpenHelper(context, DATABASE
 
         try {
             db.insertOrThrow(TABLE_NOTES, null, record)
-        }
-        catch (e: SQLException) {
+        } catch (e: SQLException) {
             Log.e("Add Note", e.toString())
             status = false
-        }
-        finally {
+        } finally {
             return status
         }
     }
 
-    public fun updateNote (note: Note): Boolean {
+    public fun updateNote(note: Note): Boolean {
         val db: SQLiteDatabase = this.writableDatabase
         val values: ContentValues = ContentValues()
         var status: Boolean = true
@@ -134,21 +140,26 @@ class DatabaseHelper (val context: Context) : SQLiteOpenHelper(context, DATABASE
         values.put("title", note.title)
         values.put("content", note.content)
 
-
-        val count: Int = db.update(TABLE_NOTES, values, "id = ?",
-                arrayOf(note.id.toString()))
+        val count: Int = db.update(
+            TABLE_NOTES,
+            values,
+            "id = ?",
+            arrayOf(note.id.toString()),
+        )
 
         return count == 1
     }
 
-    public fun listNotes (owner: Int): Cursor {
+    public fun listNotes(owner: Int): Cursor {
         val db: SQLiteDatabase = this.readableDatabase
         val columns: Array<String> = arrayOf("id AS _id", "title", "content", "createdAt")
         val filter: String = "owner = ?"
         val filterValues: Array<String> = arrayOf(owner.toString())
 
-        return db.query(false, TABLE_NOTES, columns, filter, filterValues,
-                "","","","")
+        return db.query(
+            false, TABLE_NOTES, columns, filter, filterValues,
+            "", "", "", "",
+        )
     }
 
     public fun getNote(id: Int): Note {
@@ -158,8 +169,10 @@ class DatabaseHelper (val context: Context) : SQLiteOpenHelper(context, DATABASE
         val filterValues: Array<String> = arrayOf(id.toString())
         val note: Note
 
-        val cursor: Cursor = db.query(false, TABLE_NOTES, columns, filter, filterValues,
-                "","","","")
+        val cursor: Cursor = db.query(
+            false, TABLE_NOTES, columns, filter, filterValues,
+            "", "", "", "",
+        )
 
         if (cursor.count != 1) {
             throw Exception("Note not found")
@@ -167,8 +180,10 @@ class DatabaseHelper (val context: Context) : SQLiteOpenHelper(context, DATABASE
 
         cursor.moveToFirst()
 
-        note = Note(CryptoHelper.decrypt(cursor.getString(cursor.getColumnIndex("title"))),
-                CryptoHelper.decrypt(cursor.getString(cursor.getColumnIndex("content"))))
+        note = Note(
+            CryptoHelper.decrypt(cursor.getString(cursor.getColumnIndex("title"))),
+            CryptoHelper.decrypt(cursor.getString(cursor.getColumnIndex("content"))),
+        )
         note.id = id
 
         return note

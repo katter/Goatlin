@@ -3,33 +3,33 @@ package com.cx.goatlin
 import android.animation.Animator
 import android.animation.AnimatorListenerAdapter
 import android.annotation.TargetApi
-import android.support.v7.app.AppCompatActivity
 import android.app.LoaderManager.LoaderCallbacks
+import android.content.*
+import android.content.pm.PackageManager
 import android.database.Cursor
 import android.net.Uri
 import android.os.AsyncTask
 import android.os.Build
 import android.os.Bundle
 import android.provider.ContactsContract
+import android.support.annotation.RequiresApi
+import android.support.v4.app.ActivityCompat
+import android.support.v4.content.ContextCompat
+import android.support.v7.app.AppCompatActivity
 import android.text.TextUtils
+import android.view.Menu
+import android.view.MenuInflater
+import android.view.MenuItem
 import android.view.View
 import android.view.inputmethod.EditorInfo
 import android.widget.ArrayAdapter
 import android.widget.TextView
-import java.util.ArrayList
-import android.content.*
-import android.content.pm.PackageManager
-import android.support.annotation.RequiresApi
-import android.support.v4.app.ActivityCompat
-import android.support.v4.content.ContextCompat
-import android.view.Menu
-import android.view.MenuInflater
-import android.view.MenuItem
 import com.cx.goatlin.helpers.DatabaseHelper
 import com.cx.goatlin.helpers.PreferenceHelper
 import com.cx.goatlin.models.Account
 import kotlinx.android.synthetic.main.activity_login.*
 import java.lang.Exception
+import java.util.ArrayList
 
 /**
  * A login screen that offers login via email/password.
@@ -48,13 +48,15 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
         setContentView(R.layout.activity_login)
         // Set up the login form.
         populateAutoComplete()
-        password.setOnEditorActionListener(TextView.OnEditorActionListener { _, id, _ ->
-            if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
-                attemptLogin()
-                return@OnEditorActionListener true
-            }
-            false
-        })
+        password.setOnEditorActionListener(
+            TextView.OnEditorActionListener { _, id, _ ->
+                if (id == EditorInfo.IME_ACTION_DONE || id == EditorInfo.IME_NULL) {
+                    attemptLogin()
+                    return@OnEditorActionListener true
+                }
+                false
+            },
+        )
 
         email_sign_in_button.setOnClickListener { attemptLogin() }
         sign_up_button.setOnClickListener {
@@ -65,9 +67,14 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
 
     private fun checkAndPromptUserToGrantPermissions() {
         if (ContextCompat.checkSelfPermission(
-                this,android.Manifest.permission.READ_CONTACTS) != PackageManager.PERMISSION_GRANTED) {
+                this, android.Manifest.permission.READ_CONTACTS,
+            ) != PackageManager.PERMISSION_GRANTED
+        ) {
             ActivityCompat.requestPermissions(
-                this, arrayOf(android.Manifest.permission.READ_CONTACTS), 1)
+                this,
+                arrayOf(android.Manifest.permission.READ_CONTACTS),
+                1,
+            )
         }
     }
 
@@ -148,23 +155,23 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
 
             login_form.visibility = if (show) View.GONE else View.VISIBLE
             login_form.animate()
-                    .setDuration(shortAnimTime)
-                    .alpha((if (show) 0 else 1).toFloat())
-                    .setListener(object : AnimatorListenerAdapter() {
-                        override fun onAnimationEnd(animation: Animator) {
-                            login_form.visibility = if (show) View.GONE else View.VISIBLE
-                        }
-                    })
+                .setDuration(shortAnimTime)
+                .alpha((if (show) 0 else 1).toFloat())
+                .setListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        login_form.visibility = if (show) View.GONE else View.VISIBLE
+                    }
+                })
 
             login_progress.visibility = if (show) View.VISIBLE else View.GONE
             login_progress.animate()
-                    .setDuration(shortAnimTime)
-                    .alpha((if (show) 1 else 0).toFloat())
-                    .setListener(object : AnimatorListenerAdapter() {
-                        override fun onAnimationEnd(animation: Animator) {
-                            login_progress.visibility = if (show) View.VISIBLE else View.GONE
-                        }
-                    })
+                .setDuration(shortAnimTime)
+                .alpha((if (show) 1 else 0).toFloat())
+                .setListener(object : AnimatorListenerAdapter() {
+                    override fun onAnimationEnd(animation: Animator) {
+                        login_progress.visibility = if (show) View.VISIBLE else View.GONE
+                    }
+                })
         } else {
             // The ViewPropertyAnimator APIs are not available, so simply show
             // and hide the relevant UI components.
@@ -175,19 +182,27 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
 
     @RequiresApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
     override fun onCreateLoader(i: Int, bundle: Bundle?): Loader<Cursor> {
-        checkAndPromptUserToGrantPermissions();
-        return CursorLoader(this,
-                // Retrieve data rows for the device user's 'profile' contact.
-                Uri.withAppendedPath(ContactsContract.Profile.CONTENT_URI,
-                        ContactsContract.Contacts.Data.CONTENT_DIRECTORY), ProfileQuery.PROJECTION,
+        checkAndPromptUserToGrantPermissions()
+        return CursorLoader(
+            this,
+            // Retrieve data rows for the device user's 'profile' contact.
+            Uri.withAppendedPath(
+                ContactsContract.Profile.CONTENT_URI,
+                ContactsContract.Contacts.Data.CONTENT_DIRECTORY,
+            ),
+            ProfileQuery.PROJECTION,
 
-                // Select only email addresses.
-                ContactsContract.Contacts.Data.MIMETYPE + " = ?", arrayOf(ContactsContract.CommonDataKinds.Email
-                .CONTENT_ITEM_TYPE),
+            // Select only email addresses.
+            ContactsContract.Contacts.Data.MIMETYPE + " = ?",
+            arrayOf(
+                ContactsContract.CommonDataKinds.Email
+                    .CONTENT_ITEM_TYPE,
+            ),
 
-                // Show primary email addresses first. Note that there won't be
-                // a primary email address if the user hasn't specified one.
-                ContactsContract.Contacts.Data.IS_PRIMARY + " DESC")
+            // Show primary email addresses first. Note that there won't be
+            // a primary email address if the user hasn't specified one.
+            ContactsContract.Contacts.Data.IS_PRIMARY + " DESC",
+        )
     }
 
     override fun onLoadFinished(cursorLoader: Loader<Cursor>, cursor: Cursor) {
@@ -202,21 +217,24 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
     }
 
     override fun onLoaderReset(cursorLoader: Loader<Cursor>) {
-
     }
 
     private fun addEmailsToAutoComplete(emailAddressCollection: List<String>) {
-        //Create adapter to tell the AutoCompleteTextView what to show in its dropdown list.
-        val adapter = ArrayAdapter(this@LoginActivity,
-                android.R.layout.simple_dropdown_item_1line, emailAddressCollection)
+        // Create adapter to tell the AutoCompleteTextView what to show in its dropdown list.
+        val adapter = ArrayAdapter(
+            this@LoginActivity,
+            android.R.layout.simple_dropdown_item_1line,
+            emailAddressCollection,
+        )
 
         username.setAdapter(adapter)
     }
 
     object ProfileQuery {
         val PROJECTION = arrayOf(
-                ContactsContract.CommonDataKinds.Email.ADDRESS,
-                ContactsContract.CommonDataKinds.Email.IS_PRIMARY)
+            ContactsContract.CommonDataKinds.Email.ADDRESS,
+            ContactsContract.CommonDataKinds.Email.IS_PRIMARY,
+        )
         val ADDRESS = 0
         val IS_PRIMARY = 1
     }
@@ -228,26 +246,27 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
     inner class UserLoginTask internal constructor(private val mUsername: String, private val mPassword: String) : AsyncTask<Void, Void, Boolean>() {
 
         override fun doInBackground(vararg params: Void): Boolean? {
-            if ((mUsername == "Supervisor") and (mPassword == "MySuperSecretPassword123!")){
+            if ((mUsername == "Supervisor") and (mPassword == "MySuperSecretPassword123!")) {
                 return true
-            }
-            else {
+            } else {
                 try {
                     val account: Account = DatabaseHelper(applicationContext).getAccount(mUsername)
 
                     if (mPassword != account.password) {
-                        return false;
+                        return false
                     }
 
                     val prefs: SharedPreferences = applicationContext.getSharedPreferences(
-                            applicationContext.packageName, Context.MODE_PRIVATE)
+                        applicationContext.packageName,
+                        Context.MODE_PRIVATE,
+                    )
                     val editor: SharedPreferences.Editor = prefs.edit()
 
                     editor.putInt("userId", account.id).apply()
                     editor.putString("userEmail", mUsername).apply()
 
                     return account.id > -1
-                } catch(e: Exception){
+                } catch (e: Exception) {
                     return false
                 }
             }
@@ -258,10 +277,10 @@ class LoginActivity : AppCompatActivity(), LoaderCallbacks<Cursor> {
             showProgress(false)
 
             if (success!!) {
-                var homeIntent = Intent(this@LoginActivity,HomeActivity::class.java)
+                var homeIntent = Intent(this@LoginActivity, HomeActivity::class.java)
                 startActivity(homeIntent)
 
-                //finish()
+                // finish()
             } else {
                 password.error = getString(R.string.error_incorrect_password)
                 password.requestFocus()

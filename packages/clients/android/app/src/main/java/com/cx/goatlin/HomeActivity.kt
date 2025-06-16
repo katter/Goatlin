@@ -11,7 +11,6 @@ import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.widget.*
-import kotlinx.android.synthetic.main.activity_home.*
 import android.widget.TextView
 import com.cx.goatlin.api.model.Note
 import com.cx.goatlin.api.service.Client
@@ -19,6 +18,7 @@ import com.cx.goatlin.helpers.CryptoHelper
 import com.cx.goatlin.helpers.DatabaseHelper
 import com.cx.goatlin.helpers.PreferenceHelper
 import com.cx.goatlin.models.Account
+import kotlinx.android.synthetic.main.activity_home.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -43,8 +43,10 @@ class HomeActivity : AppCompatActivity() {
     override fun onResume() {
         super.onResume()
 
-        val prefs = applicationContext.getSharedPreferences(applicationContext.packageName,
-                Context.MODE_PRIVATE)
+        val prefs = applicationContext.getSharedPreferences(
+            applicationContext.packageName,
+            Context.MODE_PRIVATE,
+        )
         val owner: Int = prefs.getInt("userId", -1)
 
         if (owner == -1) {
@@ -95,8 +97,8 @@ class HomeActivity : AppCompatActivity() {
             val createdAt: String = cursor.getString(cursor.getColumnIndex("createdAt"))
             val note: Note = Note(title, content, createdAt)
 
-            val call: Call<Void> = apiService.syncNote(basicAuth,username,id, note)
-            call.enqueue(object: Callback<Void> {
+            val call: Call<Void> = apiService.syncNote(basicAuth, username, id, note)
+            call.enqueue(object : Callback<Void> {
                 override fun onFailure(call: Call<Void>, t: Throwable) {
                     Log.e("Sync", t.message.toString())
                 }
@@ -115,5 +117,4 @@ class NoteCursorAdapter(context: Context, layout: Int, cursor: Cursor, flags: In
         val title = view.findViewById(R.id.title) as TextView
         title.text = CryptoHelper.decrypt(cursor.getString(cursor.getColumnIndex("title")))
     }
-
 }
