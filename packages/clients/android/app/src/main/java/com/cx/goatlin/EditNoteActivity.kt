@@ -63,8 +63,7 @@ class EditNoteActivity : AppCompatActivity() {
         if (noteId != null) {
             try {
                 note = DatabaseHelper(applicationContext).getNote(noteId.toInt())
-            }
-            catch (e: Exception) {
+            } catch (e: Exception) {
                 Log.e("EditNoteActivity", e.toString())
                 note = Note("", "")
             }

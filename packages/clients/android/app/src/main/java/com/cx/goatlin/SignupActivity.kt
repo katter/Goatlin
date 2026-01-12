@@ -4,13 +4,13 @@ import android.content.Intent
 import android.os.Bundle
 import android.support.v7.app.AppCompatActivity
 import android.util.Log
-import kotlinx.android.synthetic.main.activity_signup.*
-import android.widget.Toast
 import android.view.Gravity
 import android.widget.AutoCompleteTextView
+import android.widget.Toast
 import com.cx.goatlin.api.model.Account
 import com.cx.goatlin.api.service.Client
 import com.cx.goatlin.helpers.DatabaseHelper
+import kotlinx.android.synthetic.main.activity_signup.*
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
@@ -39,27 +39,29 @@ class SignupActivity : AppCompatActivity() {
         if (confirmPassword != password) {
             this.confirmPassword.error = "Passwords don't match"
             this.confirmPassword.requestFocus()
-            return;
+            return
         }
 
         val account: Account = Account(name, email, password)
 
         val call: Call<Void> = apiService.signup(account)
 
-        call.enqueue(object: Callback<Void> {
+        call.enqueue(object : Callback<Void> {
             override fun onFailure(call: Call<Void>, t: Throwable) {
                 Log.e("SingupActivity", t.message.toString())
             }
 
             override fun onResponse(call: Call<Void>, response: Response<Void>) {
                 val emailField: AutoCompleteTextView = findViewById(R.id.email)
-                var message:String = ""
+                var message: String = ""
 
                 when (response.code()) {
                     201 -> {
                         if (createLocalAccount(account)) {
-                            val intent = Intent(this@SignupActivity,
-                                    LoginActivity::class.java)
+                            val intent = Intent(
+                                this@SignupActivity,
+                                LoginActivity::class.java,
+                            )
 
                             startActivity(intent)
                         } else {
